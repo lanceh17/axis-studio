@@ -27,7 +27,8 @@
     const scene = new THREE.Scene();
 
     const camera = new THREE.PerspectiveCamera(40, canvas.width / canvas.height, 0.1, 100);
-    camera.position.set(0, 0.75, 1.3);
+    camera.position.set(0, 0.4, 1.3);
+    camera.lookAt(0, 0.4, 0);
 
     const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
     renderer.setSize(canvas.width, canvas.height);
@@ -70,46 +71,34 @@
     let currentMixer = null;
     let currentAnimIdx = 0;
     const modelRoot = new THREE.Group();
-    modelRoot.position.set(0, -0.5, 0);
+    modelRoot.position.set(0, -0.6, 0);
     scene.add(modelRoot);
-    const animCache = {};
 
     function loadAnimation(index) {
       const name = ANIMS[index % ANIMS.length];
-      if (animCache[name]) {
-        swapModel(animCache[name]);
-        return;
-      }
       const loader = new GLTFLoader();
       loader.load(animFile(name), (gltf) => {
-        animCache[name] = gltf;
-        swapModel(gltf);
+        if (currentModel) {
+          modelRoot.remove(currentModel);
+          if (currentMixer) currentMixer.stopAllAction();
+        }
+        const model = gltf.scene;
+        model.scale.set(0.9, 0.9, 0.9);
+        model.position.set(0, 0, 0);
+        modelRoot.add(model);
+        currentModel = model;
+
+        const mixer = new THREE.AnimationMixer(model);
+        currentMixer = mixer;
+        if (gltf.animations && gltf.animations.length) {
+          console.log('Animations loaded:', gltf.animations.length);
+          gltf.animations.forEach((clip) => {
+            const action = mixer.clipAction(clip);
+            action.play();
+          });
+        }
+        window.__boothMixer = mixer;
       });
-    }
-
-    function swapModel(gltf) {
-      if (currentModel) {
-        modelRoot.remove(currentModel);
-        if (currentMixer) currentMixer.stopAllAction();
-      }
-      const model = gltf.scene.clone(true);
-      model.scale.set(0.9, 0.9, 0.9);
-      model.position.set(0, 0, 0);
-      modelRoot.add(model);
-      currentModel = model;
-
-      const mixer = new THREE.AnimationMixer(model);
-      currentMixer = mixer;
-      if (gltf.animations && gltf.animations.length) {
-        console.log('Animations loaded:', gltf.animations.length);
-        gltf.animations.forEach((clip) => {
-          const action = mixer.clipAction(clip);
-          action.play();
-        });
-      } else {
-        console.warn('No animations found in GLB');
-      }
-      window.__boothMixer = mixer;
     }
 
     loadAnimation(0);
