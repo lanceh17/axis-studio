@@ -1,0 +1,761 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AXIS // THE BOOTH — Producer Workspace</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://unpkg.com/three@0.165.0/build/three.module.js",
+      "three/addons/": "https://unpkg.com/three@0.165.0/examples/jsm/"
+    }
+  }
+  </script>
+  <script type="module">
+    import * as THREE from 'three';
+    import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+
+    const canvas = document.getElementById('boothCanvas');
+    if (!canvas) throw new Error('boothCanvas not found');
+
+    const rect = canvas.parentElement.getBoundingClientRect();
+    canvas.width = rect.width;
+    canvas.height = rect.height;
+
+    const scene = new THREE.Scene();
+
+    const camera = new THREE.PerspectiveCamera(45, canvas.width / canvas.height, 0.1, 100);
+    camera.position.set(0, 1.2, 3.5);
+
+    const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
+    renderer.setSize(canvas.width, canvas.height);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+    const keyLight = new THREE.DirectionalLight(0xffa45a, 2.5);
+    keyLight.position.set(3, 4, 2);
+    scene.add(keyLight);
+
+    const rimLight = new THREE.DirectionalLight(0x5cc8ff, 1.8);
+    rimLight.position.set(-3, 3, 1);
+    scene.add(rimLight);
+
+    const fillLight = new THREE.DirectionalLight(0x8888ff, 0.6);
+    fillLight.position.set(0, 1, -2);
+    scene.add(fillLight);
+
+    const ambient = new THREE.AmbientLight(0x222244, 0.5);
+    scene.add(ambient);
+
+    const ANIMS = [
+      '019f8b5b',
+      '019f8b56',
+      '019f8b53',
+      '019f8b50',
+      '019f8b4b',
+      '019f8b44',
+      '019f8b42',
+      '019f8b3a',
+      '019f8b30',
+      '019f8b2e',
+      '019f8b2c',
+    ];
+
+    function animFile(name) {
+      return `assets/Meshy_AI_Midnight_Hoodie_biped_Animation_${name}_withSkin.glb`;
+    }
+
+    let currentModel = null;
+    let currentMixer = null;
+    let currentAnimIdx = 0;
+    const modelRoot = new THREE.Group();
+    modelRoot.position.set(0, -0.5, 0);
+    scene.add(modelRoot);
+    const animCache = {};
+
+    function loadAnimation(index) {
+      const name = ANIMS[index % ANIMS.length];
+      if (animCache[name]) {
+        swapModel(animCache[name]);
+        return;
+      }
+      const loader = new GLTFLoader();
+      loader.load(animFile(name), (gltf) => {
+        animCache[name] = gltf;
+        swapModel(gltf);
+      });
+    }
+
+    function swapModel(gltf) {
+      if (currentModel) {
+        modelRoot.remove(currentModel);
+        if (currentMixer) currentMixer.stopAllAction();
+      }
+      const model = gltf.scene.clone(true);
+      model.scale.set(0.8, 0.8, 0.8);
+      model.position.set(0, 0, 0);
+      modelRoot.add(model);
+      currentModel = model;
+
+      const mixer = new THREE.AnimationMixer(model);
+      currentMixer = mixer;
+      if (gltf.animations && gltf.animations.length) {
+        gltf.animations.forEach((clip) => {
+          const action = mixer.clipAction(clip);
+          action.play();
+        });
+      }
+      window.__boothMixer = mixer;
+    }
+
+    loadAnimation(0);
+
+    function animate() {
+      requestAnimationFrame(animate);
+      if (currentMixer) currentMixer.update(0.016);
+      renderer.render(scene, camera);
+    }
+    animate();
+
+    window.__boothAnimCycle = function() {
+      currentAnimIdx = (currentAnimIdx + 1) % ANIMS.length;
+      loadAnimation(currentAnimIdx);
+    };
+
+    window.__boothSetAnim = function(nameOrIdx) {
+      if (typeof nameOrIdx === 'number') {
+        currentAnimIdx = nameOrIdx % ANIMS.length;
+      } else {
+        const idx = ANIMS.findIndex(a => a.toLowerCase().includes(nameOrIdx.toLowerCase()));
+        if (idx === -1) return;
+        currentAnimIdx = idx;
+      }
+      loadAnimation(currentAnimIdx);
+    };
+
+    const resizeObserver = new ResizeObserver(() => {
+      const r = canvas.parentElement.getBoundingClientRect();
+      canvas.width = r.width;
+      canvas.height = r.height;
+      camera.aspect = r.width / r.height;
+      camera.updateProjectionMatrix();
+      renderer.setSize(r.width, r.height);
+    });
+    resizeObserver.observe(canvas.parentElement);
+  </script>
+</head>
+<body>
+
+  <!-- ================= SETUP MODAL ================= -->
+  <div id="setupModal" class="modal-backdrop">
+    <div class="modal">
+      <div class="modal-header">
+        <div class="logo-mark">AX</div>
+        <div>
+          <h1>AXIS <span class="logo-dot">//</span> THE BOOTH</h1>
+          <p class="tagline">Patch your keys in to step into the booth · Gemini powers the producer's brain</p>
+        </div>
+      </div>
+      <div class="setup-body">
+        <label class="field">
+          <span class="field-label">MINIMAX API KEY</span>
+          <div class="field-row">
+            <input type="password" id="apiKeyInput" placeholder="eyJhbGciOi..." />
+            <button class="btn btn-mini btn-secondary" id="toggleKeyVis" type="button">Show</button>
+          </div>
+        </label>
+        <label class="field">
+          <span class="field-label">GEMINI API KEY <em>(optional — enables chat)</em></span>
+          <div class="field-row">
+            <input type="password" id="geminiKeyInput" placeholder="AIzaSy..." />
+            <button class="btn btn-mini btn-secondary" id="toggleGeminiVis" type="button">Show</button>
+          </div>
+        </label>
+        <label class="field">
+          <span class="field-label">PRODUCER / ARTIST NAME <em>(optional)</em></span>
+          <input type="text" id="artistNameInput" placeholder="e.g. Metro, Stylz, Anonymous" />
+        </label>
+        <label class="field">
+          <span class="field-label">API MODEL</span>
+          <select id="modelSelect">
+            <option value="music-01">music-01 (Legacy Core)</option>
+            <option value="music-1.5">music-1.5 (High Fidelity)</option>
+            <option value="music-2.0">music-2.0 (Pro Audio)</option>
+            <option value="music-3.0">music-3.0 (Latest)</option>
+            <option value="music-3.0-free">music-3.0-free (Free)</option>
+          </select>
+        </label>
+        <div class="setup-actions">
+          <button class="btn btn-secondary" id="testKeyBtn" type="button">Test API</button>
+          <button class="btn btn-primary" id="enterStudioBtn" type="button">
+            Enter The Booth
+            <span class="btn-glow"></span>
+          </button>
+        </div>
+        <div id="setupStatus" class="setup-status"></div>
+        <div id="setupDebug" class="setup-debug"></div>
+      </div>
+      <div class="modal-footer">
+        <span>v3.0 · BOOTH EDITION</span>
+        <a href="#" onclick="return false">Session Info</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= MAIN APP ================= -->
+  <div id="app" class="app hidden">
+
+    <!-- ====== TOP: OUTBOARD GEAR RACK ====== -->
+    <div class="studio-wall">
+      <!-- Brand module (outboard chassis) -->
+      <div class="bridge-brand">
+        <div class="logo-mark">AX</div>
+        <div class="bridge-brand-text">
+          <div class="bridge-name">AXIS <span class="bridge-dot">//</span> THE BOOTH</div>
+          <div class="bridge-sub">PRODUCER SESSION · LIVE</div>
+        </div>
+      </div>
+
+      <!-- Rack of outboard modules -->
+      <div class="bridge-meters">
+        <!-- BPM module -->
+        <div class="bridge-meter">
+          <span class="bridge-meter-label">BPM</span>
+          <span class="bridge-meter-value muted" id="bpmDisplay">—</span>
+          <div class="bridge-meter-bar">
+            <div class="bridge-meter-fill" id="energyFill"></div>
+          </div>
+        </div>
+        <!-- MOOD module with VU -->
+        <div class="bridge-meter">
+          <span class="bridge-meter-label">MOOD</span>
+          <span class="bridge-meter-value muted" id="keyDisplay">—</span>
+          <div class="bridge-vu" id="vuMeter">
+            <div class="vu-seg"></div><div class="vu-seg"></div><div class="vu-seg"></div>
+            <div class="vu-seg"></div><div class="vu-seg"></div><div class="vu-seg"></div>
+            <div class="vu-seg"></div><div class="vu-seg"></div><div class="vu-seg"></div>
+            <div class="vu-seg"></div>
+          </div>
+        </div>
+        <!-- GENRE module -->
+        <div class="bridge-meter">
+          <span class="bridge-meter-label">GENRE</span>
+          <span class="bridge-meter-value muted" id="genreDisplay">—</span>
+        </div>
+        <!-- NOW PLAYING module -->
+        <div class="bridge-meter bridge-meter-wide">
+          <span class="bridge-meter-label">NOW IN THE BOOTH</span>
+          <span class="bridge-meter-now muted" id="npTrackName">— silence —</span>
+        </div>
+      </div>
+
+      <!-- Right: Patch bay -->
+      <div class="bridge-right">
+        <!-- Producer chip (multi-select dropdown) -->
+        <div class="bridge-chip bridge-producer" id="producerChip">
+          <span>PRODUCER</span>
+          <span class="producer-summary" id="producerSummary">None</span>
+          <div class="producer-drop" id="producerDrop">
+            <div class="producer-search">
+              <input type="text" id="producerSearch" placeholder="Filter producers..." />
+            </div>
+            <div class="producer-list" id="producerList"></div>
+          </div>
+        </div>
+        <!-- Model select -->
+        <div class="bridge-chip">
+          <span>MODEL</span>
+          <select id="headerModelSelect" aria-label="Select MiniMax model">
+            <option value="music-3.0">music-3.0</option>
+            <option value="music-3.0-free">music-3.0-free</option>
+          </select>
+        </div>
+        <!-- API LED -->
+        <div class="api-led" id="apiIndicator">
+          <span class="led-dot"></span>
+          <span class="api-text">MINIMAX</span>
+        </div>
+        <!-- Settings -->
+        <button class="bridge-icon-btn" id="settingsBtn" title="Settings">⚙</button>
+      </div>
+    </div>
+
+    <!-- ====== MAIN: STUDIO CONTROL ROOM ====== -->
+    <div class="main-grid">
+
+      <!-- LEFT WALL: Session Library -->
+      <section class="rack-unit">
+        <div class="rack-header">
+          <span class="rack-header-label">Session Library</span>
+          <span class="rack-header-led off"></span>
+          <span class="lib-count" id="libCount">0 tracks</span>
+        </div>
+        <div class="rack-content">
+          <div class="lib-list" id="libList">
+            <!-- Tracks injected here -->
+          </div>
+        </div>
+      </section>
+
+      <!-- CENTER: THE BOOTH — producer visual + session log -->
+      <section class="rack-unit rack-booth">
+        <div class="rack-header booth-header">
+          <div class="booth-header-left">
+            <div class="booth-avatar">A</div>
+            <div>
+              <div class="booth-name">AXIS <span class="booth-pro">PRO</span></div>
+              <div class="booth-status">
+                <span class="status-dot"></span>
+                <span id="boothStatusText">in the booth · standing by</span>
+              </div>
+            </div>
+          </div>
+          <div class="booth-header-right">
+            <span class="rack-header-led"></span>
+            <button class="btn-mini btn-secondary" id="clearChatBtn">Clear</button>
+          </div>
+        </div>
+
+        <div class="rack-content booth-content">
+
+          <!-- The Booth View: producer visual backdrop -->
+          <div class="booth-stage">
+            <div class="booth-scene">
+              <img src="assets/studio-bg.png" alt="Studio background" class="studio-bg" />
+              <canvas id="boothCanvas" class="booth-canvas"></canvas>
+              <!-- Animated status overlay -->
+              <div class="booth-overlay">
+                <div class="booth-overlay-row">
+                  <span class="rec-led" id="recLed"></span>
+                  <span class="rec-label" id="recLabel">REC</span>
+                  <span class="booth-timestamp" id="boothClock">00:00:00</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Session Log (the chat, restyled) -->
+          <div class="chat-area">
+            <div class="chat-stream" id="chatStream"></div>
+
+            <div class="chat-quick-row">
+              <button class="quick-chip" data-prompt="Make me a dark trap beat at 140 bpm">Dark Trap 140</button>
+              <button class="quick-chip" data-prompt="Cook up a smooth lo-fi hip hop beat, 80 bpm">Lo-Fi 80</button>
+              <button class="quick-chip" data-prompt="Give me an aggressive UK drill beat like Central Cee">Drill</button>
+              <button class="quick-chip" data-prompt="Build a tech house track, 126 bpm, rolling bass">Tech House 126</button>
+            </div>
+
+            <div class="chat-typing" id="typingIndicator">
+              <span></span><span></span><span></span>
+              <em>AXIS is cooking...</em>
+            </div>
+
+            <div class="chat-input-wrap">
+              <input type="file" id="audioUpload" accept="audio/*,.mp3,.wav,.ogg,.flac,.m4a" style="display:none" />
+              <div class="chat-input-row">
+                <textarea id="chatInput" placeholder="Talk to AXIS or request a vibe..." rows="1"></textarea>
+                <button class="upload-btn" id="uploadBtn" title="Upload reference track">📎</button>
+                <button class="send-btn" id="sendBtn">↵</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- RIGHT: DECK — outboard gear -->
+      <section class="rack-unit">
+        <div class="rack-header">
+          <span class="rack-header-label">Audio Scope</span>
+          <span class="rack-header-led off"></span>
+          <span class="qg-sub" id="sessionSub">parametric</span>
+        </div>
+        <div class="rack-content deck-content">
+
+          <!-- Visualizer (hardware scope) -->
+          <div class="viz-section">
+            <div class="viz-label">
+              <span class="viz-label-text">Oscilloscope</span>
+              <span class="viz-label-status" id="vizLabelStatus">IDLE</span>
+            </div>
+            <div class="visualizer-wrap">
+              <canvas id="visualizer"></canvas>
+              <div class="gen-ring" id="genRing"><div class="gen-ring-spinner"></div></div>
+              <div class="viz-overlay" id="vizOverlay">
+                <div class="viz-placeholder">
+                  <div class="vinyl" id="vinylDisc">
+                    <div class="vinyl-inner"></div>
+                  </div>
+                  <span>SCOPE IDLE</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Quick Cook (patch bay) -->
+          <div class="quick-gen">
+            <div class="qg-header">
+              <h3>QUICK COOK</h3>
+              <span class="qg-sub">param controls</span>
+            </div>
+            <div class="qg-grid">
+              <div class="qg-field">
+                <span>Genre</span>
+                <select id="genreSel">
+                  <option value="Trap">Trap</option>
+                  <option value="Drill">Drill</option>
+                  <option value="Boom Bap">Boom Bap</option>
+                  <option value="Lo-Fi">Lo-Fi</option>
+                  <option value="House">House</option>
+                  <option value="Tech House">Tech House</option>
+                  <option value="Afrobeats">Afrobeats</option>
+                  <option value="R&B">R&amp;B</option>
+                  <option value="Synthwave">Synthwave</option>
+                  <option value="Phonk">Phonk</option>
+                  <option value="Reggaeton">Reggaeton</option>
+                  <option value="Jersey Club">Jersey Club</option>
+                  <option value="Ambient">Ambient</option>
+                  <option value="Rock">Rock</option>
+                  <option value="Pop">Pop</option>
+                </select>
+              </div>
+              <div class="qg-field">
+                <span>BPM</span>
+                <input type="number" id="bpmIn" value="140" min="50" max="200" />
+              </div>
+              <div class="qg-field">
+                <span>Mood</span>
+                <select id="moodSel">
+                  <option value="Dark">Dark</option>
+                  <option value="Hard">Hard</option>
+                  <option value="Chill">Chill</option>
+                  <option value="Energetic">Energetic</option>
+                  <option value="Sad">Sad</option>
+                  <option value="Aggressive">Aggressive</option>
+                  <option value="Romantic">Romantic</option>
+                  <option value="Dreamy">Dreamy</option>
+                  <option value="Hypnotic">Hypnotic</option>
+                  <option value="Uplifting">Uplifting</option>
+                </select>
+              </div>
+              <div class="qg-field">
+                <span>Sub</span>
+                <input type="text" id="styleSel" placeholder="e.g. Melodic" />
+              </div>
+            </div>
+
+            <div class="qg-prompt-row">
+              <input type="text" id="promptIn" placeholder="Extra flavor... sliding 808s, distorted chops" />
+              <button class="btn btn-primary" id="genBtn">
+                <span class="btn-text">Cook</span>
+                <span class="btn-glow"></span>
+              </button>
+            </div>
+
+            <div class="prompt-preview" id="promptPreviewText">
+              <strong>System Prompt</strong>
+              <p></p>
+            </div>
+          </div>
+
+          <!-- Deck footer -->
+          <div class="deck-footer">
+            <select id="refSel">
+              <option value="">No Reference</option>
+              <option value="metro boomin">Metro Boomin</option>
+              <option value="travis scott">Travis Scott</option>
+              <option value="j dilla">J Dilla</option>
+              <option value="fred again">Fred again..</option>
+              <option value="skrillex">Skrillex</option>
+              <option value="disclosure">Disclosure</option>
+              <option value="burna boy">Burna Boy</option>
+            </select>
+            <select id="outputSelect">
+              <option value="hex">WAV</option>
+              <option value="url">URL</option>
+            </select>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- ====== BOTTOM: ANALOG MIXING CONSOLE ====== -->
+    <div class="mixer">
+      <!-- Channel 1 -->
+      <div class="channel-strip">
+        <div class="channel-info">
+          <span class="channel-number">1</span>
+          <span class="channel-label">kick</span>
+        </div>
+        <div class="channel-fader">
+          <div class="channel-fader-track"></div>
+          <div class="channel-fader-thumb"></div>
+        </div>
+        <div class="channel-buttons">
+          <button class="channel-btn active">M</button>
+          <button class="channel-btn">S</button>
+        </div>
+        <div class="channel-vu" data-ch="1">
+          <div class="channel-vu-seg"></div>
+          <div class="channel-vu-seg"></div>
+          <div class="channel-vu-seg"></div>
+          <div class="channel-vu-seg"></div>
+          <div class="channel-vu-seg"></div>
+        </div>
+      </div>
+
+      <!-- Channel 2 -->
+      <div class="channel-strip">
+        <div class="channel-info">
+          <span class="channel-number">2</span>
+          <span class="channel-label">snare</span>
+        </div>
+        <div class="channel-fader">
+          <div class="channel-fader-track"></div>
+          <div class="channel-fader-thumb"></div>
+        </div>
+        <div class="channel-buttons">
+          <button class="channel-btn active">M</button>
+          <button class="channel-btn">S</button>
+        </div>
+        <div class="channel-vu" data-ch="2">
+          <div class="channel-vu-seg"></div>
+          <div class="channel-vu-seg"></div>
+          <div class="channel-vu-seg"></div>
+          <div class="channel-vu-seg"></div>
+          <div class="channel-vu-seg"></div>
+        </div>
+      </div>
+
+      <!-- Channel 3 -->
+      <div class="channel-strip">
+        <div class="channel-info">
+          <span class="channel-number">3</span>
+          <span class="channel-label">808</span>
+        </div>
+        <div class="channel-fader">
+          <div class="channel-fader-track"></div>
+          <div class="channel-fader-thumb"></div>
+        </div>
+        <div class="channel-buttons">
+          <button class="channel-btn active">M</button>
+          <button class="channel-btn">S</button>
+        </div>
+        <div class="channel-vu" data-ch="3">
+          <div class="channel-vu-seg"></div>
+          <div class="channel-vu-seg"></div>
+          <div class="channel-vu-seg"></div>
+          <div class="channel-vu-seg"></div>
+          <div class="channel-vu-seg"></div>
+        </div>
+      </div>
+
+      <!-- Channel 4 -->
+      <div class="channel-strip">
+        <div class="channel-info">
+          <span class="channel-number">4</span>
+          <span class="channel-label">hats</span>
+        </div>
+        <div class="channel-fader">
+          <div class="channel-fader-track"></div>
+          <div class="channel-fader-thumb"></div>
+        </div>
+        <div class="channel-buttons">
+          <button class="channel-btn active">M</button>
+          <button class="channel-btn">S</button>
+        </div>
+        <div class="channel-vu" data-ch="4">
+          <div class="channel-vu-seg"></div>
+          <div class="channel-vu-seg"></div>
+          <div class="channel-vu-seg"></div>
+          <div class="channel-vu-seg"></div>
+          <div class="channel-vu-seg"></div>
+        </div>
+      </div>
+
+      <!-- Master -->
+      <div class="channel-strip master">
+        <div class="channel-info">
+          <span class="channel-number">MAST</span>
+          <span class="channel-label">out</span>
+        </div>
+        <div class="channel-fader">
+          <div class="channel-fader-track"></div>
+          <div class="channel-fader-thumb" style="bottom:28px"></div>
+        </div>
+        <div class="channel-vu" data-ch="master">
+          <div class="channel-vu-seg"></div>
+          <div class="channel-vu-seg"></div>
+          <div class="channel-vu-seg"></div>
+          <div class="channel-vu-seg"></div>
+          <div class="channel-vu-seg"></div>
+          <div class="channel-vu-seg"></div>
+          <div class="channel-vu-seg"></div>
+          <div class="channel-vu-seg"></div>
+        </div>
+      </div>
+
+      <!-- Transport -->
+      <div class="mixer-transport">
+        <button class="mixer-btn" id="replayBtn" title="Replay" disabled>↺</button>
+        <button class="mixer-btn mixer-play" id="playBtn" disabled>▶</button>
+        <button class="mixer-btn" id="stopBtn" title="Stop" disabled>■</button>
+        <button class="mixer-btn" id="downloadBtn" title="Download" disabled>⤓</button>
+      </div>
+
+      <!-- Progress -->
+      <div class="mixer-progress">
+        <span id="curTime">0:00</span>
+        <div class="mixer-progress-bar">
+          <div class="mixer-progress-fill" id="progressFill"></div>
+        </div>
+        <span id="totalTime">0:00</span>
+      </div>
+
+      <!-- Volume -->
+      <div class="mixer-volume">
+        <span>🔊</span>
+        <input type="range" id="volumeSlider" min="0" max="100" value="80" />
+      </div>
+
+      <!-- Meters -->
+      <div class="mixer-meters">
+        <div class="mixer-meter-item">
+          <div class="mixer-meter-label">BPM</div>
+          <div class="mixer-meter-value muted" id="bpmDisplaySmall">—</div>
+        </div>
+        <div class="mixer-meter-item">
+          <div class="mixer-meter-label">KEY</div>
+          <div class="mixer-meter-value muted" id="keyDisplaySmall">—</div>
+        </div>
+        <div class="mixer-meter-item">
+          <div class="mixer-meter-label">TRKS</div>
+          <div class="mixer-meter-value muted" id="trackCountDisplay">0</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div class="toast-wrap" id="toastWrap"></div>
+
+  <!-- Audio element -->
+  <audio id="audioEl" crossorigin="anonymous"></audio>
+
+  <!-- Inline script: VU meter + vinyl sync + booth status cycler -->
+  <script>
+    (function() {
+      var vinyl = document.getElementById('vinylDisc');
+      if (vinyl) {
+        var audioEl = document.getElementById('audioEl');
+        if (audioEl) {
+          audioEl.addEventListener('play', function() { vinyl.classList.add('playing'); });
+          audioEl.addEventListener('pause', function() { vinyl.classList.remove('playing'); });
+          audioEl.addEventListener('ended', function() { vinyl.classList.remove('playing'); });
+        }
+      }
+
+      var vuSegs = document.querySelectorAll('.bridge-vu .vu-seg');
+      var chanVus = document.querySelectorAll('.channel-vu');
+      setInterval(function() {
+        var audioEl = document.getElementById('audioEl');
+        if (!audioEl || !audioEl.src || audioEl.paused || !window.__vuAnalyser) {
+          vuSegs.forEach(function(s) { s.style.background = 'var(--bg-3)'; });
+          chanVus.forEach(function(c) {
+            c.querySelectorAll('.channel-vu-seg').forEach(function(s) { s.style.background = 'var(--bg-3)'; });
+          });
+          return;
+        }
+        try {
+          var data = new Uint8Array(window.__vuAnalyser.frequencyBinCount);
+          window.__vuAnalyser.getByteFrequencyData(data);
+          var avg = 0;
+          for (var i = 0; i < data.length; i++) avg += data[i];
+          avg = avg / data.length / 255;
+
+          var total = vuSegs.length;
+          var active = Math.round(Math.min(avg * total * 1.4, total));
+          for (var j = 0; j < total; j++) {
+            var ratio = j / total;
+            vuSegs[j].style.background = j < active
+              ? (ratio < 0.6 ? 'var(--vu-green)' : ratio < 0.85 ? 'var(--vu-yellow)' : 'var(--vu-red)')
+              : 'var(--bg-3)';
+          }
+
+          chanVus.forEach(function(c) {
+            var segs = c.querySelectorAll('.channel-vu-seg');
+            var t = segs.length;
+            var act = Math.round(Math.min(avg * t * 1.2, t));
+            for (var k = 0; k < t; k++) {
+              var r = k / t;
+              segs[k].style.background = k < act
+                ? (r < 0.5 ? 'var(--vu-green)' : r < 0.8 ? 'var(--vu-yellow)' : 'var(--vu-red)')
+                : 'var(--bg-3)';
+            }
+          });
+        } catch(e) {}
+      }, 80);
+
+      document.addEventListener('play', function() { setTimeout(function() {}, 100); }, true);
+
+      /* Sync mixer display meters from bridge values */
+      setInterval(function() {
+        var bpmEl = document.getElementById('bpmDisplay');
+        var keyEl = document.getElementById('keyDisplay');
+        var trkEl = document.getElementById('trackCountDisplay');
+        var libCountEl = document.getElementById('libCount');
+        if (bpmEl && document.getElementById('bpmDisplaySmall'))
+          document.getElementById('bpmDisplaySmall').textContent = bpmEl.textContent;
+        if (keyEl && document.getElementById('keyDisplaySmall'))
+          document.getElementById('keyDisplaySmall').textContent = keyEl.textContent;
+        if (trkEl && libCountEl)
+          trkEl.textContent = libCountEl.textContent.replace(/[^0-9]/g, '') || '0';
+      }, 500);
+
+      /* Booth status cycle + clock */
+      var statusText = document.getElementById('boothStatusText');
+      var recLabel = document.getElementById('recLabel');
+      var recLed = document.getElementById('recLed');
+      var boothClock = document.getElementById('boothClock');
+      var typingEl = document.getElementById('typingIndicator');
+
+      var statusIdx = 0;
+      var statuses = [
+        'in the booth · standing by',
+        '🎧 listening back to the take',
+        '🥁 layering drums',
+        '🎹 sketching the piano',
+        '🎚️ riding the mix bus',
+        '💡 locking in the vibe',
+        '🔥 cooking something heavy'
+      ];
+
+      function pad(n){ return n < 10 ? '0' + n : '' + n; }
+      function tickClock() {
+        if (!boothClock) return;
+        var d = new Date();
+        boothClock.textContent = pad(d.getHours()) + ':' + pad(d.getMinutes()) + ':' + pad(d.getSeconds());
+      }
+      tickClock();
+      setInterval(tickClock, 1000);
+
+      setInterval(function() {
+        if (!statusText) return;
+        if (typingEl && typingEl.classList.contains('show')) {
+          statusText.textContent = '🎙️ recording your take…';
+          if (recLed) recLed.classList.add('on');
+          if (recLabel) recLabel.textContent = 'REC';
+          return;
+        }
+        if (recLed) recLed.classList.remove('on');
+        if (recLabel) recLabel.textContent = 'LIVE';
+        statusIdx = (statusIdx + 1) % statuses.length;
+        statusText.textContent = statuses[statusIdx];
+      }, 4200);
+    })();
+  </script>
+
+  <!-- Bundled Application Script -->
+  <script src="js/app.bundle.js"></script>
+</body>
+</html>
