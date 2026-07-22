@@ -26,9 +26,8 @@
 
     const scene = new THREE.Scene();
 
-    const camera = new THREE.PerspectiveCamera(40, canvas.width / canvas.height, 0.1, 100);
-    camera.position.set(0, 0.4, 1.3);
-    camera.lookAt(0, 0.4, 0);
+    const camera = new THREE.PerspectiveCamera(35, canvas.width / canvas.height, 0.01, 100);
+    camera.position.set(0, 0, 3);
 
     const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
     renderer.setSize(canvas.width, canvas.height);
@@ -67,12 +66,34 @@
       return `assets/Meshy_AI_Midnight_Hoodie_biped_Animation_${name}_withSkin.glb`;
     }
 
+    const modelRoot = new THREE.Group();
+    scene.add(modelRoot);
+
     let currentModel = null;
     let currentMixer = null;
     let currentAnimIdx = 0;
-    const modelRoot = new THREE.Group();
-    modelRoot.position.set(0, -0.6, 0);
-    scene.add(modelRoot);
+    let cameraFitted = false;
+
+    function fitCameraToObject(obj) {
+      const box = new THREE.Box3().setFromObject(obj);
+      const size = box.getSize(new THREE.Vector3());
+      const center = box.getCenter(new THREE.Vector3());
+
+      console.log('Model bounding box min:', box.min, 'max:', box.max, 'size:', size);
+
+      const topY = box.max.y;
+      const bottomHalfY = (topY - center.y) * 0.5;
+      const targetY = topY - bottomHalfY;
+
+      const maxDim = Math.max(size.x, size.y, size.z);
+      const fov = camera.fov * (Math.PI / 180);
+      let dist = (size.y * 0.55) / Math.tan(fov / 2);
+
+      camera.position.set(center.x, targetY, dist + center.z);
+      camera.lookAt(center.x, targetY, center.z);
+      camera.updateProjectionMatrix();
+      console.log('Camera fitted: pos=', camera.position, 'lookAt target Y=', targetY);
+    }
 
     function loadAnimation(index) {
       const name = ANIMS[index % ANIMS.length];
@@ -82,20 +103,28 @@
           modelRoot.remove(currentModel);
           if (currentMixer) currentMixer.stopAllAction();
         }
+
         const model = gltf.scene;
-        model.scale.set(0.9, 0.9, 0.9);
-        model.position.set(0, 0, 0);
         modelRoot.add(model);
         currentModel = model;
+
+        if (!cameraFitted) {
+          fitCameraToObject(model);
+          cameraFitted = true;
+        }
 
         const mixer = new THREE.AnimationMixer(model);
         currentMixer = mixer;
         if (gltf.animations && gltf.animations.length) {
-          console.log('Animations loaded:', gltf.animations.length);
+          console.log('Animations found:', gltf.animations.length, gltf.animations.map(c => c.name));
           gltf.animations.forEach((clip) => {
             const action = mixer.clipAction(clip);
+            action.setLoop(THREE.LoopRepeat);
+            action.clampWhenFinished = true;
             action.play();
           });
+        } else {
+          console.warn('No animation clips in GLB');
         }
         window.__boothMixer = mixer;
       });
@@ -105,7 +134,7 @@
 
     function animate() {
       requestAnimationFrame(animate);
-      if (currentMixer) currentMixer.update(0.016);
+      if (currentMixer) currentMixer.update(1 / 60);
       renderer.render(scene, camera);
     }
     animate();
