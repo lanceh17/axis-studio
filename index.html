@@ -26,8 +26,8 @@
 
     const scene = new THREE.Scene();
 
-    const camera = new THREE.PerspectiveCamera(45, canvas.width / canvas.height, 0.1, 100);
-    camera.position.set(0, 1.2, 3.5);
+    const camera = new THREE.PerspectiveCamera(40, canvas.width / canvas.height, 0.1, 100);
+    camera.position.set(0, 0.75, 1.3);
 
     const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
     renderer.setSize(canvas.width, canvas.height);
@@ -49,17 +49,17 @@
     scene.add(ambient);
 
     const ANIMS = [
-      '019f8b5b',
-      '019f8b56',
-      '019f8b53',
-      '019f8b50',
-      '019f8b4b',
-      '019f8b44',
-      '019f8b42',
-      '019f8b3a',
-      '019f8b30',
-      '019f8b2e',
-      '019f8b2c',
+      '019f8b5b-31fc-7826-80f2-16450ff62922',
+      '019f8b56-3d14-73e2-92f1-a1457b7fd6f7',
+      '019f8b53-bfd9-7b24-956f-6500e236e1ca',
+      '019f8b50-477e-754b-9765-20e97f0dc31f',
+      '019f8b4b-2ce0-78e7-8b24-81f7911b13f8',
+      '019f8b44-2bb5-7721-98af-acbd2f588ee8',
+      '019f8b42-3093-78ef-8003-38e820dea068',
+      '019f8b3a-d46c-7c06-a861-92bdc219fdb1',
+      '019f8b30-6b01-7777-91eb-71eb2c5018fe',
+      '019f8b2e-e42a-78ea-a55e-15286959913e',
+      '019f8b2c-ea5a-7897-aa9d-9daadc92e7e4',
     ];
 
     function animFile(name) {
@@ -93,7 +93,7 @@
         if (currentMixer) currentMixer.stopAllAction();
       }
       const model = gltf.scene.clone(true);
-      model.scale.set(0.8, 0.8, 0.8);
+      model.scale.set(0.9, 0.9, 0.9);
       model.position.set(0, 0, 0);
       modelRoot.add(model);
       currentModel = model;
@@ -101,10 +101,13 @@
       const mixer = new THREE.AnimationMixer(model);
       currentMixer = mixer;
       if (gltf.animations && gltf.animations.length) {
+        console.log('Animations loaded:', gltf.animations.length);
         gltf.animations.forEach((clip) => {
           const action = mixer.clipAction(clip);
           action.play();
         });
+      } else {
+        console.warn('No animations found in GLB');
       }
       window.__boothMixer = mixer;
     }
