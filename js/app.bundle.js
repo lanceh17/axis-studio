@@ -1638,12 +1638,14 @@ const PRODUCERS = [
       if (v) v.classList.add('playing');
       const st = $('vizLabelStatus');
       if (st) st.textContent = 'LIVE';
+      window.__boothSetAnim && window.__boothSetAnim('Fist');
     });
     $('audioEl').addEventListener('pause', () => {
       state.isPlaying = false;
       $('playBtn').textContent = '▶';
       const v = $('vinylDisc');
       if (v) v.classList.remove('playing');
+      window.__boothSetAnim && window.__boothSetAnim('Idle');
     });
   }
 
@@ -1844,6 +1846,11 @@ const PRODUCERS = [
 
   function showTyping(show) {
     $('typingIndicator').classList.toggle('show', show);
+    if (show) {
+      window.__boothSetAnim && window.__boothSetAnim('Talking');
+    } else {
+      window.__boothSetAnim && window.__boothSetAnim('Idle');
+    }
   }
 
   function scrollChat() {
@@ -1868,6 +1875,7 @@ const PRODUCERS = [
     if (state.isGenerating) return;
     state.isGenerating = true;
     setGenButtonLoading(true);
+    window.__boothSetAnim && window.__boothSetAnim('Typing');
 
     try {
       const producer = combineProducerStyles(getSelectedProducers());
@@ -1919,6 +1927,7 @@ const PRODUCERS = [
     } finally {
       state.isGenerating = false;
       setGenButtonLoading(false);
+      window.__boothSetAnim && window.__boothSetAnim('Idle');
     }
   }
 
@@ -2043,6 +2052,8 @@ const PRODUCERS = [
     $('audioEl').currentTime = 0;
     const st = $('vizLabelStatus');
     if (st) st.textContent = 'IDLE';
+    window.__boothSetAnim && window.__boothSetAnim('Victory');
+    setTimeout(() => { window.__boothSetAnim && window.__boothSetAnim('Idle'); }, 3000);
   }
 
   function updateProgress() {
