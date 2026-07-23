@@ -120,17 +120,16 @@
     }
 
     function loadAllAnimations() {
-      let loaded = 0;
-      ANIMS.forEach((file, i) => {
-        loader.load(file, (fbx) => {
-          modelCache[i] = fbx;
-          loaded++;
-          if (i === 0 && !currentModel) {
-            activateModel(0);
-          }
-          if (loaded === ANIMS.length) {
-            console.log('All', loaded, 'animations loaded');
-          }
+      /* Load idle first for instant display */
+      loader.load(ANIMS[0], (fbx) => {
+        modelCache[0] = fbx;
+        activateModel(0);
+        /* Then load the rest in the background */
+        ANIMS.forEach((file, i) => {
+          if (i === 0 || modelCache[i]) return;
+          loader.load(file, (fbx2) => {
+            modelCache[i] = fbx2;
+          });
         });
       });
     }
@@ -174,7 +173,18 @@
 
     function playAnim(index) {
       if (index === currentAnimIdx && currentModel) return;
-      if (!modelCache[index]) return;
+      if (!modelCache[index]) {
+        /* Not cached yet — load on demand then activate */
+        loader.load(ANIMS[index], (fbx) => {
+          modelCache[index] = fbx;
+          if (index === currentAnimIdx) return;
+          activateModel(index);
+          const isDance = DANCE_ANIMS.includes(index);
+          const wasDance = DANCE_ANIMS.includes(currentAnimIdx);
+          if (isDance !== wasDance) setCameraTarget(isDance);
+        });
+        return;
+      }
       const isDance = DANCE_ANIMS.includes(index);
       const wasDance = DANCE_ANIMS.includes(currentAnimIdx);
       activateModel(index);
