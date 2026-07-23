@@ -1638,7 +1638,7 @@ const PRODUCERS = [
       if (v) v.classList.add('playing');
       const st = $('vizLabelStatus');
       if (st) st.textContent = 'LIVE';
-      const danceAnims = ['Fist', 'Clap', 'Clap (1)', 'Thumbs Up', 'Cheering While Sitting', 'Cheering While Sitting (1)'];
+      const danceAnims = ['Fist', 'Clap', 'Clap (1)', 'Thumbs Up', 'Cheering While Sitting', 'Cheering While Sitting (1)', 'Hip Hop Dancing', 'Wave Hip Hop Dance', 'Silly Dancing', 'Gangnam Style', 'Playing Drums', 'Listening To Music'];
       window.__boothSetAnim && window.__boothSetAnim(danceAnims[Math.floor(Math.random() * danceAnims.length)]);
       if (window.__danceCycle) clearInterval(window.__danceCycle);
       window.__danceCycle = setInterval(() => {

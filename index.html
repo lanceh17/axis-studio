@@ -63,6 +63,12 @@
       'assets/Cheering While Sitting.fbx',
       'assets/Cheering While Sitting (1).fbx',
       'assets/Typing.fbx',
+      'assets/Hip Hop Dancing.fbx',
+      'assets/Wave Hip Hop Dance.fbx',
+      'assets/Silly Dancing.fbx',
+      'assets/Gangnam Style.fbx',
+      'assets/Playing Drums.fbx',
+      'assets/Listening To Music.fbx',
     ];
 
     const modelRoot = new THREE.Group();
@@ -127,6 +133,8 @@
       if (!currentMixer || !animClips[index]) return;
       const clip = animClips[index];
       const newAction = currentMixer.clipAction(clip);
+      const isDance = DANCE_ANIMS.includes(index);
+      const wasDance = currentAction ? DANCE_ANIMS.includes(currentAnimIdx) : false;
       if (currentAction && currentAction !== newAction) {
         newAction.reset();
         newAction.timeScale = 1;
@@ -138,6 +146,8 @@
         newAction.play();
       }
       currentAction = newAction;
+      currentAnimIdx = index;
+      if (isDance !== wasDance) setCameraTarget(isDance);
     }
 
     /* Self-crossfade on every loop to eliminate the pop */
@@ -161,11 +171,66 @@
       }, 130);
     }
 
+    /* Camera zoom: sit-tight vs dance-wide */
+    const sitZoom = { dist: null, targetY: null };
+    const danceZoom = { dist: null, targetY: null };
+    let camTarget = { pos: new THREE.Vector3(), look: new THREE.Vector3() };
+    let camCurrent = { pos: new THREE.Vector3(), look: new THREE.Vector3() };
+    let cameraLerpActive = false;
+
+    const DANCE_ANIMS = [2, 3, 4, 5, 6, 7, 8, 10, 11, 12, 13, 14, 15];
+
+    function computeZooms() {
+      if (!baseModel) return;
+      const box = new THREE.Box3().setFromObject(baseModel);
+      const size = box.getSize(new THREE.Vector3());
+      const center = box.getCenter(new THREE.Vector3());
+      const fov = camera.fov * (Math.PI / 180);
+
+      /* sit: tight waist-up (current settings) */
+      const sDist = (size.y * 0.24) / Math.tan(fov / 2);
+      const sTargetY = box.max.y - (size.y * 0.4);
+      sitZoom.dist = sDist;
+      sitZoom.targetY = sTargetY;
+
+      /* dance: zoomed out to show more of the character */
+      const dDist = (size.y * 0.38) / Math.tan(fov / 2);
+      const dTargetY = box.max.y - (size.y * 0.35);
+      danceZoom.dist = dDist;
+      danceZoom.targetY = dTargetY;
+    }
+
+    function setCameraTarget(isDance) {
+      if (!sitZoom.dist) computeZooms();
+      const z = isDance ? danceZoom : sitZoom;
+      const center = baseModel ? new THREE.Box3().setFromObject(baseModel).getCenter(new THREE.Vector3()) : new THREE.Vector3();
+      camTarget.pos.set(center.x, z.targetY, z.dist + center.z);
+      camTarget.look.set(center.x, z.targetY, center.z);
+      camCurrent.pos.copy(camera.position);
+      camCurrent.look.copy(new THREE.Vector3());
+      cameraLerpActive = true;
+    }
+
+    function updateCameraLerp() {
+      if (!cameraLerpActive) return;
+      const t = 0.04;
+      camera.position.lerp(camTarget.pos, t);
+      const lookAt = new THREE.Vector3().lerpVectors(
+        camCurrent.look, camTarget.look, Math.min(1, t * 2)
+      );
+      camera.lookAt(camTarget.look);
+      camera.updateProjectionMatrix();
+      if (camera.position.distanceTo(camTarget.pos) < 0.005) {
+        cameraLerpActive = false;
+      }
+    }
+
     loadAllAnimations();
 
     function animate() {
       requestAnimationFrame(animate);
       if (currentMixer) currentMixer.update(1 / 60);
+      updateCameraLerp();
       renderer.render(scene, camera);
     }
     animate();
