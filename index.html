@@ -81,7 +81,7 @@
       const targetY = topY - bottomHalfY;
 
       const fov = camera.fov * (Math.PI / 180);
-      let dist = (size.y * 0.22) / Math.tan(fov / 2);
+      let dist = (size.y * 0.4) / Math.tan(fov / 2);
 
       camera.position.set(center.x, targetY, dist + center.z);
       camera.lookAt(center.x, targetY, center.z);

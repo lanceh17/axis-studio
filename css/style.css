@@ -686,7 +686,7 @@ body:has(#typingIndicator.show) .booth-avatar {
 .studio-bg {
   width: 100%; height: 100%;
   display: block;
-  object-fit: contain;
+  object-fit: cover;
   object-position: center center;
   animation: boothBreath 8s ease-in-out infinite;
   transition: filter 0.3s;
