@@ -856,11 +856,13 @@ body:has(#typingIndicator.show) .booth-stage {
   display: flex;
   flex-direction: column;
   gap: 6px;
-  justify-content: flex-end;
   background: none;
   mask-image: none;
   -webkit-mask-image: none;
 }
+.chat-area.chat-overlay .chat-stream::-webkit-scrollbar { width: 4px; }
+.chat-area.chat-overlay .chat-stream::-webkit-scrollbar-track { background: transparent; }
+.chat-area.chat-overlay .chat-stream::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 2px; }
 .chat-area.chat-overlay .chat-stream .msg {
   align-self: flex-end;
 }
