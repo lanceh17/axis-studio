@@ -1638,13 +1638,20 @@ const PRODUCERS = [
       if (v) v.classList.add('playing');
       const st = $('vizLabelStatus');
       if (st) st.textContent = 'LIVE';
-      window.__boothSetAnim && window.__boothSetAnim('Fist');
+      const danceAnims = ['Fist', 'Clap', 'Clap (1)', 'Thumbs Up', 'Cheering While Sitting', 'Cheering While Sitting (1)'];
+      window.__boothSetAnim && window.__boothSetAnim(danceAnims[Math.floor(Math.random() * danceAnims.length)]);
+      if (window.__danceCycle) clearInterval(window.__danceCycle);
+      window.__danceCycle = setInterval(() => {
+        if (!state.isPlaying) { clearInterval(window.__danceCycle); return; }
+        window.__boothSetAnim && window.__boothSetAnim(danceAnims[Math.floor(Math.random() * danceAnims.length)]);
+      }, 4000 + Math.random() * 2000);
     });
     $('audioEl').addEventListener('pause', () => {
       state.isPlaying = false;
       $('playBtn').textContent = '▶';
       const v = $('vinylDisc');
       if (v) v.classList.remove('playing');
+      if (window.__danceCycle) { clearInterval(window.__danceCycle); window.__danceCycle = null; }
       window.__boothSetAnim && window.__boothSetAnim('Idle');
     });
   }
@@ -2053,6 +2060,7 @@ const PRODUCERS = [
     const st = $('vizLabelStatus');
     if (st) st.textContent = 'IDLE';
     window.__boothSetAnim && window.__boothSetAnim('Victory');
+    if (window.__danceCycle) { clearInterval(window.__danceCycle); window.__danceCycle = null; }
     setTimeout(() => { window.__boothSetAnim && window.__boothSetAnim('Idle'); }, 3000);
   }
 

@@ -33,19 +33,23 @@
     renderer.setSize(canvas.width, canvas.height);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 
-    const keyLight = new THREE.DirectionalLight(0xffa45a, 2.5);
-    keyLight.position.set(3, 4, 2);
+    const keyLight = new THREE.DirectionalLight(0xffa45a, 1.8);
+    keyLight.position.set(2, 5, 4);
     scene.add(keyLight);
 
-    const rimLight = new THREE.DirectionalLight(0x5cc8ff, 1.8);
-    rimLight.position.set(-3, 3, 1);
+    const rimLight = new THREE.DirectionalLight(0x5cc8ff, 1.2);
+    rimLight.position.set(-3, 3, 2);
     scene.add(rimLight);
 
-    const fillLight = new THREE.DirectionalLight(0x8888ff, 0.6);
-    fillLight.position.set(0, 1, -2);
+    const fillLight = new THREE.DirectionalLight(0x8888ff, 0.8);
+    fillLight.position.set(0, 2, 3);
     scene.add(fillLight);
 
-    const ambient = new THREE.AmbientLight(0x222244, 0.5);
+    const chinFill = new THREE.DirectionalLight(0xffeedd, 0.6);
+    chinFill.position.set(0, -1, 3);
+    scene.add(chinFill);
+
+    const ambient = new THREE.AmbientLight(0x333344, 0.8);
     scene.add(ambient);
 
     const ANIMS = [
@@ -90,41 +94,50 @@
     }
 
     const loader = new FBXLoader();
+    const animClips = {};
+    let baseModel = null;
+    let currentAction = null;
+    let loadedCount = 0;
 
-    function loadAnimation(index) {
-      const file = ANIMS[index % ANIMS.length];
-      loader.load(file, (fbx) => {
-        if (currentModel) {
-          modelRoot.remove(currentModel);
-          if (currentMixer) currentMixer.stopAllAction();
-        }
-
-        const model = fbx;
-        modelRoot.add(model);
-        currentModel = model;
-
-        if (!cameraFitted) {
-          fitCameraToObject(model);
-          cameraFitted = true;
-        }
-
-        const mixer = new THREE.AnimationMixer(model);
-        currentMixer = mixer;
-        if (fbx.animations && fbx.animations.length) {
-          console.log('Animations found:', fbx.animations.length, fbx.animations.map(c => c.name));
-          fbx.animations.forEach((clip) => {
-            const action = mixer.clipAction(clip);
-            action.setLoop(THREE.LoopRepeat);
-            action.play();
-          });
-        } else {
-          console.warn('No animation clips in FBX');
-        }
-        window.__boothMixer = mixer;
+    function loadAllAnimations() {
+      ANIMS.forEach((file, i) => {
+        loader.load(file, (fbx) => {
+          if (fbx.animations && fbx.animations.length) {
+            animClips[i] = fbx.animations[0];
+          }
+          loadedCount++;
+          if (!baseModel && i === 0) {
+            baseModel = fbx;
+            modelRoot.add(baseModel);
+            if (!cameraFitted) {
+              fitCameraToObject(baseModel);
+              cameraFitted = true;
+            }
+            currentMixer = new THREE.AnimationMixer(baseModel);
+            window.__boothMixer = currentMixer;
+            playAnim(0);
+          }
+        });
       });
     }
 
-    loadAnimation(0);
+    function playAnim(index) {
+      if (!currentMixer || !animClips[index]) return;
+      const clip = animClips[index];
+      const newAction = currentMixer.clipAction(clip);
+      if (currentAction && currentAction !== newAction) {
+        newAction.reset();
+        newAction.timeScale = 1;
+        currentAction.crossFadeTo(newAction, 0.3, true);
+        newAction.play();
+      } else if (!currentAction) {
+        newAction.setLoop(THREE.LoopRepeat);
+        newAction.play();
+      }
+      currentAction = newAction;
+    }
+
+    loadAllAnimations();
 
     function animate() {
       requestAnimationFrame(animate);
@@ -135,7 +148,7 @@
 
     window.__boothAnimCycle = function() {
       currentAnimIdx = (currentAnimIdx + 1) % ANIMS.length;
-      loadAnimation(currentAnimIdx);
+      playAnim(currentAnimIdx);
     };
 
     window.__boothSetAnim = function(nameOrIdx) {
@@ -146,7 +159,7 @@
         if (idx === -1) return;
         currentAnimIdx = idx;
       }
-      loadAnimation(currentAnimIdx);
+      playAnim(currentAnimIdx);
     };
 
     const resizeObserver = new ResizeObserver(() => {
