@@ -742,15 +742,18 @@ body:has(#typingIndicator.show) .booth-stage {
 }
 .chat-area.chat-overlay {
   position: absolute;
-  left: auto; right: 0; bottom: 0;
-  width: 50%;
-  height: auto;
-  max-height: 70%;
+  bottom: 10px; right: 10px;
+  width: 340px;
+  max-height: 55%;
   z-index: 5;
   display: flex;
   flex-direction: column;
-  background: none;
-  border: none;
+  background: rgba(0,0,0,0.55);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 16px;
+  overflow: hidden;
 }
 .chat-area.chat-overlay .chat-stream {
   flex: 1;
@@ -761,17 +764,21 @@ body:has(#typingIndicator.show) .booth-stage {
   gap: 6px;
   justify-content: flex-end;
   background: none;
-  mask-image: linear-gradient(to bottom, transparent 0%, black 15%);
-  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 15%);
+  mask-image: none;
+  -webkit-mask-image: none;
 }
 .chat-area.chat-overlay .chat-stream .msg {
   align-self: flex-end;
 }
 .chat-area.chat-overlay .chat-stream .msg.ai {
-  align-self: flex-end;
+  align-self: flex-start;
 }
 .chat-area.chat-overlay .chat-input-wrap {
-  margin-top: auto;
+  background: rgba(0,0,0,0.4);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-top: 1px solid rgba(255,255,255,0.08);
+  border-radius: 0 0 16px 16px;
 }
 
 .msg {
@@ -824,7 +831,8 @@ body:has(#typingIndicator.show) .booth-stage {
   display: flex; gap: 6px; flex-wrap: wrap;
   padding: 6px 14px;
   background: none;
-  justify-content: flex-end;
+  border-top: 1px solid rgba(255,255,255,0.08);
+  justify-content: flex-start;
 }
 .quick-chip {
   background: rgba(255,255,255,0.12);
@@ -846,7 +854,7 @@ body:has(#typingIndicator.show) .booth-stage {
 }
 
 .chat-typing {
-  position: absolute; bottom: 80px; right: 14px; left: auto;
+  position: absolute; bottom: 76px; left: 14px; right: auto;
   display: none; align-items: center; gap: 4px;
   background: rgba(52,199,89,0.2);
   backdrop-filter: blur(8px);
