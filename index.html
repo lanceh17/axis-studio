@@ -98,6 +98,7 @@
     let baseModel = null;
     let currentAction = null;
     let loadedCount = 0;
+    const pendingLoops = new Set();
 
     function loadAllAnimations() {
       ANIMS.forEach((file, i) => {
@@ -115,6 +116,7 @@
             }
             currentMixer = new THREE.AnimationMixer(baseModel);
             window.__boothMixer = currentMixer;
+            currentMixer.addEventListener('loop', onMixerLoop);
             playAnim(0);
           }
         });
@@ -128,6 +130,7 @@
       if (currentAction && currentAction !== newAction) {
         newAction.reset();
         newAction.timeScale = 1;
+        newAction.setLoop(THREE.LoopRepeat);
         currentAction.crossFadeTo(newAction, 0.3, true);
         newAction.play();
       } else if (!currentAction) {
@@ -135,6 +138,27 @@
         newAction.play();
       }
       currentAction = newAction;
+    }
+
+    /* Self-crossfade on every loop to eliminate the pop */
+    function onMixerLoop(e) {
+      const action = e.action;
+      if (!action || action !== currentAction) return;
+      if (pendingLoops.has(action)) return;
+      pendingLoops.add(action);
+      const clip = action.getClip();
+      const fadeAction = currentMixer.clipAction(clip);
+      fadeAction.reset();
+      fadeAction.setLoop(THREE.LoopRepeat);
+      fadeAction.time = 0;
+      fadeAction.weight = 0;
+      fadeAction.play();
+      action.crossFadeTo(fadeAction, 0.12, true);
+      fadeAction.play();
+      setTimeout(() => {
+        pendingLoops.delete(action);
+        if (currentAction === action) currentAction = fadeAction;
+      }, 130);
     }
 
     loadAllAnimations();
