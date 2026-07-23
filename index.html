@@ -77,10 +77,10 @@
       console.log('Model bounding box min:', box.min, 'max:', box.max, 'size:', size);
 
       const fov = camera.fov * (Math.PI / 180);
-      let dist = (size.y * 0.20) / Math.tan(fov / 2);
+      let dist = (size.y * 0.24) / Math.tan(fov / 2);
 
       const topY = box.max.y;
-      const halfH = size.y * 0.35;
+      const halfH = size.y * 0.4;
       const targetY = topY - halfH;
 
       camera.position.set(center.x, targetY, dist + center.z);
