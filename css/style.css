@@ -687,6 +687,102 @@ body:has(#typingIndicator.show) .booth-stage {
   mix-blend-mode: multiply;
 }
 
+/* ============================================
+   NEON LIGHTS — CSS overlay animated neon signs
+   ============================================ */
+.neon-light {
+  position: absolute;
+  pointer-events: none;
+  z-index: 2;
+  border-radius: 4px;
+}
+
+.neon-1 {
+  top: 8%;
+  left: 6%;
+  width: 120px;
+  height: 8px;
+  background: #ff3060;
+  box-shadow:
+    0 0 8px #ff3060,
+    0 0 20px #ff3060,
+    0 0 40px rgba(255,48,96,0.5);
+  animation: neonFlicker1 3s infinite;
+}
+
+.neon-2 {
+  top: 14%;
+  right: 10%;
+  width: 90px;
+  height: 8px;
+  background: #5cc8ff;
+  box-shadow:
+    0 0 8px #5cc8ff,
+    0 0 20px #5cc8ff,
+    0 0 40px rgba(92,200,255,0.5);
+  animation: neonFlicker2 4s infinite;
+}
+
+.neon-3 {
+  bottom: 30%;
+  left: 15%;
+  width: 60px;
+  height: 6px;
+  background: #ffb050;
+  box-shadow:
+    0 0 6px #ffb050,
+    0 0 16px #ffb050,
+    0 0 30px rgba(255,176,80,0.4);
+  animation: neonPulse 2.5s ease-in-out infinite;
+}
+
+@keyframes neonFlicker1 {
+  0%, 19%, 21%, 23%, 25%, 54%, 56%, 100% {
+    opacity: 1;
+    box-shadow:
+      0 0 8px #ff3060,
+      0 0 20px #ff3060,
+      0 0 40px rgba(255,48,96,0.5);
+  }
+  20%, 24%, 55% {
+    opacity: 0.4;
+    box-shadow: none;
+  }
+}
+
+@keyframes neonFlicker2 {
+  0%, 40%, 42%, 78%, 80%, 100% {
+    opacity: 1;
+    box-shadow:
+      0 0 8px #5cc8ff,
+      0 0 20px #5cc8ff,
+      0 0 40px rgba(92,200,255,0.5);
+  }
+  41%, 79% {
+    opacity: 0.3;
+    box-shadow: none;
+  }
+}
+
+@keyframes neonPulse {
+  0%, 100% {
+    opacity: 0.7;
+    box-shadow:
+      0 0 6px #ffb050,
+      0 0 16px #ffb050,
+      0 0 30px rgba(255,176,80,0.4);
+  }
+  50% {
+    opacity: 1;
+    box-shadow:
+      0 0 10px #ffb050,
+      0 0 24px #ffb050,
+      0 0 44px rgba(255,176,80,0.6);
+  }
+}
+  width: 100%; height: 100%;
+  position: relative;
+}
 .booth-scene {
   width: 100%; height: 100%;
   position: relative;
