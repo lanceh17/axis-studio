@@ -41,22 +41,15 @@ class MusicAPI {
    * which steer the model away from singing.
    */
   buildPrompt({ genre = 'Trap', bpm, mood = 'Dark', style = '', reference = '', extraPrompt = '' }, producer = null) {
-    const styleText = style ? `, ${style}` : '';
-    const refText = reference ? `, ${reference} style influence` : '';
-    const bpmText = bpm ? `${bpm} BPM, ` : '';
-    const extra = extraPrompt ? `, ${extraPrompt}` : '';
-    const moodAdj = this._moodAdjective(mood);
-    const prodText = producer ? `, ${producer.promptSuffix}` : '';
-
-    // Instrumental structure — keeps it beat-focused, no vocals
-    return [
-      `[Instrumental]`,
-      `${genre}${styleText}${refText}${prodText}, ${bpmText}${moodAdj} beat${extra}`,
-      `[Instrumental Break]`,
-      `Hard-hitting ${genre.toLowerCase()} drums, deep low-end, atmospheric texture`,
-      `[Instrumental]`,
-      `Full mix, ${moodAdj.toLowerCase()} energy, radio-ready production`
-    ].join('\n');
+    const parts = [];
+    parts.push(`Instrumental ${genre.toLowerCase()} beat`);
+    if (style) parts.push(style);
+    if (reference) parts.push(`${reference} style influence`);
+    if (producer) parts.push(producer.promptSuffix);
+    if (bpm) parts.push(`${bpm} BPM`);
+    parts.push(this._moodAdjective(mood));
+    if (extraPrompt) parts.push(extraPrompt);
+    return parts.join(', ');
   }
 
   _moodAdjective(mood) {
@@ -88,8 +81,7 @@ class MusicAPI {
     const body = {
       model: this.model,
       prompt: prompt,
-      lyrics: prompt,
-      lyrics_optimizer: true,
+      lyrics: '',
       is_instrumental: true,
       audio_setting: {
         sample_rate: 32000,
@@ -1228,7 +1220,14 @@ const PRODUCERS = [
   { id: 'pete-rock', name: 'Pete Rock', genres: ['Boom Bap', 'Jazz Rap', 'Hip Hop'], bpmRange: '85-100', signatureSound: 'Smooth jazz samples, crisp drums, melodic basslines, laid-back groove, soulful', keywords: 'smooth jazz samples, crisp drums, melodic basslines, laid-back groove, soulful', promptSuffix: 'Pete Rock style — smooth jazz-infused boom bap with crisp drums and soulful laid-back grooves' },
   { id: 'mannie-fresh', name: 'Mannie Fresh', genres: ['Bounce', 'Southern', 'Hip Hop'], bpmRange: '85-110', signatureSound: 'Bouncy synth bass, heavy kick drums, call-and-response chants, new orleans bounce', keywords: 'bouncy synth bass, heavy kick drums, call-and-response, new orleans bounce, party', promptSuffix: 'Mannie Fresh style — new orleans bounce beat with bouncy synth bass and heavy dancefloor drums' },
   { id: 'dj-khalil', name: 'DJ Khalil', genres: ['Boom Bap', 'West Coast', 'Hip Hop', 'R&B'], bpmRange: '80-100', signatureSound: 'Cinematic strings, soulful samples, west coast bounce, live instrumentation', keywords: 'cinematic strings, soulful samples, west coast bounce, live instrumentation', promptSuffix: 'DJ Khalil style — cinematic west coast hip hop with soulful samples and live instrumentation' },
-  { id: 'trent-reznor', name: 'Trent Reznor / Atticus Ross', genres: ['Industrial', 'Ambient', 'Electronic', 'Film Score'], bpmRange: '60-130', signatureSound: 'Dark industrial textures, glitchy electronics, ambient soundscapes, distorted bass', keywords: 'dark industrial, glitchy electronics, ambient, distorted, cinematic, textured', promptSuffix: 'Trent Reznor style — dark industrial electronic beat with glitchy textures and cinematic soundscape' }
+  { id: 'trent-reznor', name: 'Trent Reznor / Atticus Ross', genres: ['Industrial', 'Ambient', 'Electronic', 'Film Score'], bpmRange: '60-130', signatureSound: 'Dark industrial textures, glitchy electronics, ambient soundscapes, distorted bass', keywords: 'dark industrial, glitchy electronics, ambient, distorted, cinematic, textured', promptSuffix: 'Trent Reznor style — dark industrial electronic beat with glitchy textures and cinematic soundscape' },
+  { id: 'southside', name: 'Southside (808 Mafia)', genres: ['Trap', 'Hip Hop', 'Southern'], bpmRange: '130-170', signatureSound: 'Heavy 808s, dark melodies, aggressive hi-hat rolls, minimalist trap, Atlanta bounce', keywords: 'heavy 808s, dark melodies, aggressive hi-hats, minimalist trap, atlanta, 808 mafia', promptSuffix: 'Southside style — hard Atlanta trap with heavy 808s, dark melodies, and aggressive hi-hat rolls' },
+  { id: 'tay-keith', name: 'Tay Keith', genres: ['Trap', 'Hip Hop', 'Memphis'], bpmRange: '130-160', signatureSound: 'Punchy 808s, dark piano loops, hard-hitting snares, Memphis bounce, minimalist', keywords: 'punchy 808s, dark piano, hard snares, memphis bounce, minimalist, aggressive', promptSuffix: 'Tay Keith style — hard Memphis trap with punchy 808s, dark piano loops, and aggressive snares' },
+  { id: 'wheezy', name: 'Wheezy Outta Here', genres: ['Trap', 'Hip Hop', 'Southern'], bpmRange: '125-160', signatureSound: 'Melodic trap, sliding 808s, airy pads, catchy loops, polished production', keywords: 'melodic trap, sliding 808s, airy pads, catchy loops, polished, southern', promptSuffix: 'Wheezy style — melodic trap with sliding 808s, airy pads, and polished catchy loops' },
+  { id: 'young-chop', name: 'Young Chop', genres: ['Trap', 'Hip Hop', 'Chicago'], bpmRange: '130-160', signatureSound: 'Dark piano chords, booming 808s, Chicago drill influence, minimal arrangements', keywords: 'dark piano, booming 808s, chicago drill, minimal, eerie, ominous', promptSuffix: 'Young Chop style — dark Chicago trap with booming 808s, eerie piano, and minimal arrangements' },
+  { id: 'cardo', name: 'Cardo', genres: ['Trap', 'Hip Hop', 'West Coast'], bpmRange: '100-140', signatureSound: 'Bouncy melodies, crisp drums, laid-back groove, melodic 808s, west coast flavor', keywords: 'bouncy melodies, crisp drums, laid-back groove, melodic 808s, west coast', promptSuffix: 'Cardo style — bouncy melodic trap with crisp drums, laid-back groove, and smooth 808s' },
+  { id: 'fki-1st', name: 'FKi 1st', genres: ['Trap', 'Hip Hop', 'Experimental'], bpmRange: '100-150', signatureSound: 'Eclectic samples, quirky melodies, heavy bass, experimental drum patterns, genre-blending', keywords: 'eclectic samples, quirky melodies, heavy bass, experimental drums, genre-blending', promptSuffix: 'FKi 1st style — eclectic experimental trap with quirky melodies and heavy genre-blending bass' },
+  { id: 'hitmaka', name: 'Hitmaka', genres: ['R&B', 'Hip Hop', 'Pop'], bpmRange: '85-120', signatureSound: 'Polished R&B production, smooth melodies, crisp drums, catchy hooks, radio-ready', keywords: 'polished r&b, smooth melodies, crisp drums, catchy hooks, radio-ready, clean', promptSuffix: 'Hitmaka style — polished R&B-infused hip hop with smooth melodies and radio-ready production' },
 ];
 
 /* ================= app.js ================= */
