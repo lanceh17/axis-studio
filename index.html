@@ -101,23 +101,6 @@
     let currentAction = null;
     let currentAnimIdx = 0;
     let cameraFitted = false;
-    let modelFadeDir = 0; /* 0 = idle, -1 = fading out old, +1 = fading in new */
-    let fadeOld = null;
-    let fadeNew = null;
-    const FADE_SPEED = 3;
-
-    function setModelOpacity(model, alpha) {
-      model.traverse((child) => {
-        if (child.isMesh && child.material) {
-          const mats = Array.isArray(child.material) ? child.material : [child.material];
-          mats.forEach(m => {
-            m.transparent = alpha < 1;
-            m.opacity = alpha;
-            m.depthWrite = alpha >= 0.99;
-          });
-        }
-      });
-    }
 
     function loadAllAnimations() {
       /* Load idle first for instant display */
@@ -138,18 +121,12 @@
       const fbx = modelCache[index];
       if (!fbx) return;
 
-      if (currentModel) {
-        /* Crossfade: keep old model visible while new one fades in */
-        fadeOld = currentModel;
-        fadeNew = fbx;
-        modelFadeDir = -1;
-        setModelOpacity(fadeNew, 0);
-        modelRoot.add(fadeNew);
-      } else {
-        currentModel = fbx;
-        modelRoot.add(currentModel);
-        setModelOpacity(currentModel, 1);
+      /* Remove ALL models from scene, then add the new one */
+      while (modelRoot.children.length > 0) {
+        modelRoot.remove(modelRoot.children[0]);
       }
+      currentModel = fbx;
+      modelRoot.add(currentModel);
 
       /* Fit camera from first loaded model (reference) */
       if (!cameraFitted) {
@@ -189,37 +166,6 @@
       const wasDance = DANCE_ANIMS.includes(currentAnimIdx);
       activateModel(index);
       if (isDance !== wasDance) setCameraTarget(isDance);
-    }
-
-    function updateModelFade(dt) {
-      if (modelFadeDir === 0 || !fadeOld || !fadeNew) return;
-      if (modelFadeDir === -1) {
-        /* Fade out old */
-        const oldAlpha = fadeOld.materials ? 1 : 1;
-        fadeOld.traverse((c) => {
-          if (c.isMesh && c.material) {
-            const mats = Array.isArray(c.material) ? c.material : [c.material];
-            mats.forEach(m => { m.opacity = Math.max(0, m.opacity - dt * FADE_SPEED); m.transparent = true; });
-          }
-        });
-        fadeNew.traverse((c) => {
-          if (c.isMesh && c.material) {
-            const mats = Array.isArray(c.material) ? c.material : [c.material];
-            mats.forEach(m => { m.opacity = Math.min(1, m.opacity + dt * FADE_SPEED); m.transparent = m.opacity < 0.99; });
-          }
-        });
-        /* Check if done */
-        let oldMin = 1;
-        fadeOld.traverse((c) => { if (c.isMesh && c.material) { const mats = Array.isArray(c.material) ? c.material : [c.material]; mats.forEach(m => { oldMin = Math.min(oldMin, m.opacity); }); } });
-        if (oldMin <= 0.01) {
-          modelRoot.remove(fadeOld);
-          setModelOpacity(fadeNew, 1);
-          currentModel = fadeNew;
-          fadeOld = null;
-          fadeNew = null;
-          modelFadeDir = 0;
-        }
-      }
     }
 
     /* Camera zoom: sit-tight vs dance-wide */
@@ -284,7 +230,6 @@
       requestAnimationFrame(animate);
       const dt = 1 / 60;
       if (currentMixer) currentMixer.update(dt);
-      updateModelFade(dt);
       updateCameraLerp();
       renderer.render(scene, camera);
     }
