@@ -90,9 +90,9 @@ class MusicAPI {
       prompt: prompt,
       is_instrumental: true,
       audio_setting: {
-        sample_rate: 32000,
-        bitrate: 128000,
-        format: this.outputFormat === 'hex' ? 'wav' : 'mp3'
+        sample_rate: 44100,
+        bitrate: 256000,
+        format: 'mp3'
       },
       output_format: this.outputFormat || 'url'
     };
@@ -120,7 +120,10 @@ class MusicAPI {
 
     // Check base response error codes
     if (data.base_resp && data.base_resp.status_code !== 0) {
-      throw new Error(`MiniMax Error ${data.base_resp.status_code}: ${data.base_resp.status_msg}`);
+      const code = data.base_resp.status_code;
+      const msg = data.base_resp.status_msg || 'Unknown error';
+      const friendly = this._friendlyError(code, msg);
+      throw new Error(friendly);
     }
 
     // MiniMax may return a direct URL or encoded audio payload
@@ -132,29 +135,26 @@ class MusicAPI {
       if (typeof audioUrl !== 'string' || !audioUrl.trim()) {
         throw new Error(`Music API returned invalid audio URL: ${JSON.stringify(audioUrl).slice(0,200)}`);
       }
-      return { blob: null, url: audioUrl, duration: data?.data?.audio_length_ms
-        ? data.data.audio_length_ms / 1000
-        : data?.audio_length_ms ? data.audio_length_ms / 1000 : null };
+      const durMs = data?.extra_info?.music_duration || data?.data?.audio_length_ms || data?.audio_length_ms;
+      return { blob: null, url: audioUrl, duration: durMs ? durMs / 1000 : null };
     }
 
     if (hex) {
       const bytes = this._hexToBytes(hex);
-      const mimeType = body.audio_setting.format === 'wav' ? 'audio/wav' : 'audio/mpeg';
+      const mimeType = 'audio/mpeg';
       const blob = new Blob([bytes], { type: mimeType });
       const url = URL.createObjectURL(blob);
-      return { blob, url, duration: data.extra_info?.audio_length_ms
-        ? data.extra_info.audio_length_ms / 1000
-        : null, format: body.audio_setting.format || 'wav' };
+      const durMs = data?.extra_info?.music_duration || data?.extra_info?.audio_length_ms;
+      return { blob, url, duration: durMs ? durMs / 1000 : null, format: 'mp3' };
     }
 
     if (base64) {
       const bytes = this._base64ToBytes(base64);
-      const mimeType = body.audio_setting.format === 'wav' ? 'audio/wav' : 'audio/mpeg';
+      const mimeType = 'audio/mpeg';
       const blob = new Blob([bytes], { type: mimeType });
       const url = URL.createObjectURL(blob);
-      return { blob, url, duration: data.extra_info?.audio_length_ms
-        ? data.extra_info.audio_length_ms / 1000
-        : null, format: body.audio_setting.format || 'wav' };
+      const durMs = data?.extra_info?.music_duration || data?.extra_info?.audio_length_ms;
+      return { blob, url, duration: durMs ? durMs / 1000 : null, format: 'mp3' };
     }
 
     console.warn('No audio data found from MiniMax response', data);
@@ -182,6 +182,22 @@ class MusicAPI {
   }
 
   /**
+   * Map MiniMax error codes to human-friendly messages.
+   */
+  _friendlyError(code, rawMsg) {
+    const map = {
+      1002: 'Rate limited — too many requests. Wait a moment and try again.',
+      1004: 'Auth failed — check your API key.',
+      1008: 'Insufficient balance — add tokens at platform.minimaxi.com.',
+      1026: 'Content flagged as sensitive material.',
+      2013: 'Invalid parameters — prompt may be too long or malformed.',
+      2049: 'Invalid API key.'
+    };
+    const hint = map[code] || '';
+    return `MiniMax Error ${code}: ${rawMsg}${hint ? ' — ' + hint : ''}`;
+  }
+
+  /**
    * Quick validation — hit the API with a tiny request
    * to confirm the key works.
    */
@@ -193,7 +209,7 @@ class MusicAPI {
         model: this.model,
         prompt: probePrompt,
         is_instrumental: true,
-        audio_setting: { sample_rate: 32000, bitrate: 128000, format: 'mp3' },
+        audio_setting: { sample_rate: 44100, bitrate: 256000, format: 'mp3' },
         output_format: this.outputFormat || 'url'
       };
 
