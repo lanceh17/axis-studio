@@ -653,7 +653,7 @@ body:has(#typingIndicator.show) .booth-avatar {
 .booth-stage {
   position: relative;
   flex-shrink: 0;
-  height: 300px;
+  aspect-ratio: 16 / 9;
   background: #000 url('../assets/studio-bg.png') center center / cover no-repeat;
   border-bottom: 1px solid var(--border-2);
   overflow: hidden;
@@ -1402,14 +1402,14 @@ body:has(#typingIndicator.show) .booth-stage {
 @media (max-width: 1080px) {
   .main-grid { grid-template-columns: 1fr 260px; }
   .main-grid > .rack-unit:first-child { display: none; }
-  .booth-stage { height: 220px; }
+  .booth-stage { aspect-ratio: 16 / 9; }
 }
 @media (max-width: 820px) {
   .app { grid-template-rows: 56px 1fr 96px; }
   .main-grid { grid-template-columns: 1fr; padding: 6px; gap: 6px; }
   .main-grid > .rack-unit:first-child { display: none; }
   .main-grid > .rack-unit:last-child { display: none; }
-  .booth-stage { height: 200px; }
+  .booth-stage { aspect-ratio: 16 / 9; }
   .bridge-meters { gap: 4px; }
   .bridge-meter { min-width: 50px; padding: 5px 8px; }
   .bridge-meter-wide { min-width: 100px; }
