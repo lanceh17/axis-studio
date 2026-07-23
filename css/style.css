@@ -654,9 +654,18 @@ body:has(#typingIndicator.show) .booth-avatar {
   position: relative;
   flex-shrink: 0;
   height: 300px;
-  background: #000;
+  background: #000 url('../assets/studio-bg.png') center center / cover no-repeat;
   border-bottom: 1px solid var(--border-2);
   overflow: hidden;
+  animation: boothBreath 8s ease-in-out infinite;
+  transition: filter 0.3s;
+}
+@keyframes boothBreath {
+  0%, 100% { filter: brightness(1) saturate(1); }
+  50%      { filter: brightness(1.06) saturate(1.1); }
+}
+body:has(#typingIndicator.show) .booth-stage {
+  filter: brightness(1.1) saturate(1.15) drop-shadow(0 0 20px rgba(255,160,80,0.15));
 }
 .booth-stage::before {
   /* Subtle warm vignette over the booth */
@@ -683,22 +692,6 @@ body:has(#typingIndicator.show) .booth-avatar {
   width: 100%; height: 100%;
   position: relative;
 }
-.studio-bg {
-  width: 100%; height: 100%;
-  display: block;
-  object-fit: cover;
-  object-position: center center;
-  animation: boothBreath 8s ease-in-out infinite;
-  transition: filter 0.3s;
-}
-@keyframes boothBreath {
-  0%, 100% { filter: brightness(1) saturate(1); }
-  50%      { filter: brightness(1.06) saturate(1.1); }
-}
-body:has(#typingIndicator.show) .studio-bg {
-  filter: brightness(1.1) saturate(1.15) drop-shadow(0 0 20px rgba(255,160,80,0.15));
-}
-
 .booth-canvas {
   position: absolute;
   top: 0; left: 0;
