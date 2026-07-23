@@ -15,7 +15,7 @@
   </script>
   <script type="module">
     import * as THREE from 'three';
-    import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+    import { FBXLoader } from 'three/addons/loaders/FBXLoader.js';
 
     const canvas = document.getElementById('boothCanvas');
     if (!canvas) throw new Error('boothCanvas not found');
@@ -49,22 +49,17 @@
     scene.add(ambient);
 
     const ANIMS = [
-      '019f8b5b-31fc-7826-80f2-16450ff62922',
-      '019f8b56-3d14-73e2-92f1-a1457b7fd6f7',
-      '019f8b53-bfd9-7b24-956f-6500e236e1ca',
-      '019f8b50-477e-754b-9765-20e97f0dc31f',
-      '019f8b4b-2ce0-78e7-8b24-81f7911b13f8',
-      '019f8b44-2bb5-7721-98af-acbd2f588ee8',
-      '019f8b42-3093-78ef-8003-38e820dea068',
-      '019f8b3a-d46c-7c06-a861-92bdc219fdb1',
-      '019f8b30-6b01-7777-91eb-71eb2c5018fe',
-      '019f8b2e-e42a-78ea-a55e-15286959913e',
-      '019f8b2c-ea5a-7897-aa9d-9daadc92e7e4',
+      'assets/Sitting Idle.fbx',
+      'assets/Sitting Talking.fbx',
+      'assets/Sitting Clap.fbx',
+      'assets/Sitting Clap (1).fbx',
+      'assets/Sitting Fist Pump.fbx',
+      'assets/Sitting Thumbs Up.fbx',
+      'assets/Sitting Victory.fbx',
+      'assets/Cheering While Sitting.fbx',
+      'assets/Cheering While Sitting (1).fbx',
+      'assets/Typing.fbx',
     ];
-
-    function animFile(name) {
-      return `assets/Meshy_AI_Midnight_Hoodie_biped_Animation_${name}_withSkin.glb`;
-    }
 
     const modelRoot = new THREE.Group();
     scene.add(modelRoot);
@@ -85,7 +80,6 @@
       const bottomHalfY = (topY - center.y) * 0.5;
       const targetY = topY - bottomHalfY;
 
-      const maxDim = Math.max(size.x, size.y, size.z);
       const fov = camera.fov * (Math.PI / 180);
       let dist = (size.y * 0.22) / Math.tan(fov / 2);
 
@@ -95,16 +89,17 @@
       console.log('Camera fitted: pos=', camera.position, 'lookAt target Y=', targetY);
     }
 
+    const loader = new FBXLoader();
+
     function loadAnimation(index) {
-      const name = ANIMS[index % ANIMS.length];
-      const loader = new GLTFLoader();
-      loader.load(animFile(name), (gltf) => {
+      const file = ANIMS[index % ANIMS.length];
+      loader.load(file, (fbx) => {
         if (currentModel) {
           modelRoot.remove(currentModel);
           if (currentMixer) currentMixer.stopAllAction();
         }
 
-        const model = gltf.scene;
+        const model = fbx;
         modelRoot.add(model);
         currentModel = model;
 
@@ -115,16 +110,15 @@
 
         const mixer = new THREE.AnimationMixer(model);
         currentMixer = mixer;
-        if (gltf.animations && gltf.animations.length) {
-          console.log('Animations found:', gltf.animations.length, gltf.animations.map(c => c.name));
-          gltf.animations.forEach((clip) => {
+        if (fbx.animations && fbx.animations.length) {
+          console.log('Animations found:', fbx.animations.length, fbx.animations.map(c => c.name));
+          fbx.animations.forEach((clip) => {
             const action = mixer.clipAction(clip);
             action.setLoop(THREE.LoopRepeat);
-            action.clampWhenFinished = true;
             action.play();
           });
         } else {
-          console.warn('No animation clips in GLB');
+          console.warn('No animation clips in FBX');
         }
         window.__boothMixer = mixer;
       });
