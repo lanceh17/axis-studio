@@ -401,7 +401,11 @@ const GENRES = {
   'phonk': 'Phonk', 'reggaeton': 'Reggaeton', 'jersey club': 'Jersey Club',
   'ambient': 'Ambient', 'rock': 'Rock', 'pop': 'Pop', 'edm': 'House',
   'dnb': 'Drill', 'drum and bass': 'Drill', 'uk garage': 'House',
-  'k-pop': 'Pop', 'kpop': 'Pop', 'hyperpop': 'Pop'
+  'k-pop': 'Pop', 'kpop': 'Pop', 'hyperpop': 'Pop',
+  'west coast hip hop': 'Hip Hop', 'west coast': 'Hip Hop',
+  'hip hop': 'Hip Hop', 'hiphop': 'Hip Hop', 'hip hop beats': 'Hip Hop',
+  'east coast': 'Boom Bap', 'southern hip hop': 'Trap', 'chicago': 'Trap',
+  'bounce': 'Trap', 'new orleans bounce': 'Trap'
 };
 
 const MOODS = {
@@ -884,7 +888,7 @@ class ProducerAI {
       'Dreamy': 'Ambient',
       'Aggressive': 'Drill',
       'Hypnotic': 'Tech House',
-      'Uplifting': 'Pop'
+      'Uplifting': 'Hip Hop'
     };
     return mood ? map[mood] : null;
   }
@@ -1228,6 +1232,16 @@ const PRODUCERS = [
   { id: 'cardo', name: 'Cardo', genres: ['Trap', 'Hip Hop', 'West Coast'], bpmRange: '100-140', signatureSound: 'Bouncy melodies, crisp drums, laid-back groove, melodic 808s, west coast flavor', keywords: 'bouncy melodies, crisp drums, laid-back groove, melodic 808s, west coast', promptSuffix: 'Cardo style — bouncy melodic trap with crisp drums, laid-back groove, and smooth 808s' },
   { id: 'fki-1st', name: 'FKi 1st', genres: ['Trap', 'Hip Hop', 'Experimental'], bpmRange: '100-150', signatureSound: 'Eclectic samples, quirky melodies, heavy bass, experimental drum patterns, genre-blending', keywords: 'eclectic samples, quirky melodies, heavy bass, experimental drums, genre-blending', promptSuffix: 'FKi 1st style — eclectic experimental trap with quirky melodies and heavy genre-blending bass' },
   { id: 'hitmaka', name: 'Hitmaka', genres: ['R&B', 'Hip Hop', 'Pop'], bpmRange: '85-120', signatureSound: 'Polished R&B production, smooth melodies, crisp drums, catchy hooks, radio-ready', keywords: 'polished r&b, smooth melodies, crisp drums, catchy hooks, radio-ready, clean', promptSuffix: 'Hitmaka style — polished R&B-infused hip hop with smooth melodies and radio-ready production' },
+  { id: 'drumma-boy', name: 'Drumma Boy', genres: ['Hip Hop', 'Southern', 'Trap'], bpmRange: '70-100', signatureSound: 'Heavy kick drums, deep 808s, Memphis bounce, anthemic hooks, southern swagger', keywords: 'heavy kicks, deep 808s, memphis bounce, anthemic hooks, southern, swagger', promptSuffix: 'Drumma Boy style — heavy southern hip hop with deep 808s, Memphis bounce, and anthemic energy' },
+  { id: 'lil-c', name: 'Lil C (Tumay)', genres: ['Trap', 'Hip Hop', 'Southern'], bpmRange: '130-165', signatureSound: 'Aggressive trap drums, dark synths, rattling hi-hats, raw energy, dirty south', keywords: 'aggressive trap, dark synths, rattling hi-hats, raw energy, dirty south', promptSuffix: 'Lil C style — raw aggressive trap with dark synths, rattling hi-hats, and dirty south energy' },
+  { id: 'dj-squeaky', name: 'DJ Squeaky', genres: ['Hip Hop', 'Memphis', 'Bounce'], bpmRange: '65-95', signatureSound: 'Memphis bounce, deep 808s, dark loops, repetitive hooks, crunk-influenced', keywords: 'memphis bounce, deep 808s, dark loops, repetitive hooks, crunk, lo-fi', promptSuffix: 'DJ Squeaky style — dark Memphis bounce with deep 808s, lo-fi loops, and crunk-influenced energy' },
+  { id: 'bangladesh', name: 'Bangladesh', genres: ['Trap', 'Hip Hop', 'Southern'], bpmRange: '130-160', signatureSound: 'Minimalist trap, heavy 808s, catchy synth loops, Atlanta sound, hard-hitting', keywords: 'minimalist trap, heavy 808s, catchy synth loops, atlanta, hard-hitting', promptSuffix: 'Bangladesh style — minimalist Atlanta trap with heavy 808s and catchy synth loops' },
+  { id: 'shawty-redd', name: 'Shawty Redd', genres: ['Trap', 'Hip Hop', 'Southern'], bpmRange: '120-155', signatureSound: 'Dark cinematic trap, orchestral hits, heavy 808s, dramatic builds, Atlanta', keywords: 'dark cinematic trap, orchestral hits, heavy 808s, dramatic builds, atlanta', promptSuffix: 'Shawty Redd style — dark cinematic Atlanta trap with orchestral hits and heavy 808s' },
+  { id: 'lil-jon', name: 'Lil Jon', genres: ['Crunk', 'Hip Hop', 'Southern'], bpmRange: '75-100', signatureSound: 'Crunk energy, heavy bass, call-and-response chants, hype drums, party anthems', keywords: 'crunk, heavy bass, call-and-response, hype drums, party anthems, energetic', promptSuffix: 'Lil Jon style — high-energy crunk with heavy bass, hype drums, and party anthem energy' },
+  { id: 'master-p', name: 'Master P / Beats By The Pound', genres: ['Hip Hop', 'Southern', 'Bounce'], bpmRange: '70-100', signatureSound: 'New orleans bounce, deep bass, synth stabs, laid-back groove, no Limit sound', keywords: 'new orleans bounce, deep bass, synth stabs, laid-back groove, no limit', promptSuffix: 'Master P style — new orleans bounce with deep bass, synth stabs, and laid-back southern groove' },
+  { id: 'kirk-king', name: 'Kirk King', genres: ['West Coast', 'Hip Hop', 'G-Funk'], bpmRange: '85-105', signatureSound: 'G-funk synths, funky basslines, west coast bounce, live instrumentation, laid-back', keywords: 'g-funk synths, funky basslines, west coast bounce, live instrumentation, laid-back', promptSuffix: 'Kirk King style — west coast g-funk with funky basslines, smooth synths, and laid-back bounce' },
+  { id: 'hello-kenny', name: 'Hello Kenny', genres: ['West Coast', 'Hip Hop'], bpmRange: '85-105', signatureSound: 'West coast bounce, deep bass, melodic loops, laid-back grooves, California vibe', keywords: 'west coast bounce, deep bass, melodic loops, laid-back, california vibe', promptSuffix: 'Hello Kenny style — west coast hip hop with deep bass, melodic loops, and California bounce' },
+  { id: 'bandplay', name: 'BandPlay', genres: ['West Coast', 'Hip Hop', 'Ratchet'], bpmRange: '90-115', signatureSound: 'West coast ratchet, bouncy drums, catchy stabs, party energy, LA sound', keywords: 'west coast ratchet, bouncy drums, catchy stabs, party energy, la sound', promptSuffix: 'BandPlay style — west coast ratchet with bouncy drums, catchy stabs, and LA party energy' },
 ];
 
 /* ================= app.js ================= */
@@ -1886,6 +1900,17 @@ const PRODUCERS = [
     try {
       const styles = combineProducerStyles(getSelectedProducers());
       const prompt = music.buildPrompt(params, styles);
+
+      /* Show prompt in preview panel */
+      const preview = $('promptPreviewText');
+      if (preview) {
+        const pTag = preview.querySelector('p');
+        if (pTag) pTag.textContent = prompt;
+        else preview.textContent = prompt;
+      }
+
+      toast(`Prompt → MiniMax: ${prompt}`, 'ok');
+
       const result = await music.generate(prompt);
 
       const trackName = producer.generateTrackName(params.genre, params.mood);
