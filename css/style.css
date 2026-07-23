@@ -744,6 +744,21 @@ body:has(#typingIndicator.show) .booth-stage {
     linear-gradient(180deg, rgba(22,19,26,0.95), rgba(16,13,18,0.98));
   position: relative;
 }
+.chat-area.chat-overlay {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(180deg, rgba(22,19,26,0.7) 0%, rgba(16,13,18,0.85) 30%, rgba(16,13,18,0.92) 100%);
+  z-index: 5;
+  flex: 1;
+}
+.chat-area.chat-overlay .chat-stream {
+  flex: 1;
+  max-height: none;
+}
+.chat-area.chat-overlay .chat-input-wrap {
+  margin-top: auto;
+}
 .chat-area::before {
   /* The "glass" between user and booth — subtle highlight at top */
   content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px;

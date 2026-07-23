@@ -81,7 +81,7 @@
       const targetY = topY - bottomHalfY;
 
       const fov = camera.fov * (Math.PI / 180);
-      let dist = (size.y * 0.45) / Math.tan(fov / 2);
+      let dist = (size.y * 0.35) / Math.tan(fov / 2);
 
       camera.position.set(center.x, targetY, dist + center.z);
       camera.lookAt(center.x, targetY, center.z);
@@ -346,31 +346,30 @@
                   <span class="booth-timestamp" id="boothClock">00:00:00</span>
                 </div>
               </div>
-            </div>
-          </div>
+              <!-- Chat overlay on the booth -->
+              <div class="chat-area chat-overlay">
+                <div class="chat-stream" id="chatStream"></div>
 
-          <!-- Session Log (the chat, restyled) -->
-          <div class="chat-area">
-            <div class="chat-stream" id="chatStream"></div>
+                <div class="chat-quick-row">
+                  <button class="quick-chip" data-prompt="Make me a dark trap beat at 140 bpm">Dark Trap 140</button>
+                  <button class="quick-chip" data-prompt="Cook up a smooth lo-fi hip hop beat, 80 bpm">Lo-Fi 80</button>
+                  <button class="quick-chip" data-prompt="Give me an aggressive UK drill beat like Central Cee">Drill</button>
+                  <button class="quick-chip" data-prompt="Build a tech house track, 126 bpm, rolling bass">Tech House 126</button>
+                </div>
 
-            <div class="chat-quick-row">
-              <button class="quick-chip" data-prompt="Make me a dark trap beat at 140 bpm">Dark Trap 140</button>
-              <button class="quick-chip" data-prompt="Cook up a smooth lo-fi hip hop beat, 80 bpm">Lo-Fi 80</button>
-              <button class="quick-chip" data-prompt="Give me an aggressive UK drill beat like Central Cee">Drill</button>
-              <button class="quick-chip" data-prompt="Build a tech house track, 126 bpm, rolling bass">Tech House 126</button>
-            </div>
+                <div class="chat-typing" id="typingIndicator">
+                  <span></span><span></span><span></span>
+                  <em>AXIS is cooking...</em>
+                </div>
 
-            <div class="chat-typing" id="typingIndicator">
-              <span></span><span></span><span></span>
-              <em>AXIS is cooking...</em>
-            </div>
-
-            <div class="chat-input-wrap">
-              <input type="file" id="audioUpload" accept="audio/*,.mp3,.wav,.ogg,.flac,.m4a" style="display:none" />
-              <div class="chat-input-row">
-                <textarea id="chatInput" placeholder="Talk to AXIS or request a vibe..." rows="1"></textarea>
-                <button class="upload-btn" id="uploadBtn" title="Upload reference track">📎</button>
-                <button class="send-btn" id="sendBtn">↵</button>
+                <div class="chat-input-wrap">
+                  <input type="file" id="audioUpload" accept="audio/*,.mp3,.wav,.ogg,.flac,.m4a" style="display:none" />
+                  <div class="chat-input-row">
+                    <textarea id="chatInput" placeholder="Talk to AXIS or request a vibe..." rows="1"></textarea>
+                    <button class="upload-btn" id="uploadBtn" title="Upload reference track">📎</button>
+                    <button class="send-btn" id="sendBtn">↵</button>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
