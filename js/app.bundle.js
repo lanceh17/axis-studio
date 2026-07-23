@@ -1878,8 +1878,8 @@ const PRODUCERS = [
     window.__boothSetAnim && window.__boothSetAnim('Typing');
 
     try {
-      const producer = combineProducerStyles(getSelectedProducers());
-      const prompt = music.buildPrompt(params, producer);
+      const styles = combineProducerStyles(getSelectedProducers());
+      const prompt = music.buildPrompt(params, styles);
       const result = await music.generate(prompt);
 
       const trackName = producer.generateTrackName(params.genre, params.mood);
